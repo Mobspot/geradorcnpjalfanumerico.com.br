@@ -22,3 +22,6 @@
 - chave de exemplo com aparência de credencial;
 - formulário externo sem governança e tags de medição ainda não conciliadas.
 - links externos para páginas da Receita Federal.
+
+## 2026-11-15 — candidato SPEC-0031
+Eventos preparados, inertes por padrão, sem conteúdo de CNPJ. GA4/Search Console pendentes. Sem publicação.

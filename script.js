@@ -66,6 +66,11 @@
     };
   }
 
+  function track(name, params = {}) {
+    if (global.CNPJ_ANALYTICS_ENABLED !== true || typeof global.gtag !== "function") return;
+    try { global.gtag("event", name, params); } catch (_error) { /* Measurement must not block usage. */ }
+  }
+
   const api = { normalizeCNPJ, calculateDigits, generateCNPJ, formatCNPJ, validateCNPJ };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   global.CNPJAlfanumerico = api;
@@ -90,11 +95,12 @@
     generatedInput.value = formatCNPJ(generateCNPJ());
   }
 
-  generateButton.addEventListener("click", generateAndShow);
+  generateButton.addEventListener("click", () => { generateAndShow(); track("generate_cnpj"); });
   copyButton.addEventListener("click", async () => {
     if (!generatedInput.value) return;
     try {
       await navigator.clipboard.writeText(generatedInput.value);
+      track("copy_cnpj");
       showToast("CNPJ sintético copiado.");
     } catch (_error) {
       generatedInput.select();
@@ -104,6 +110,7 @@
 
   function runValidation() {
     const result = validateCNPJ(validateInput.value);
+    track("validate_cnpj", { valid: result.valid });
     validationResult.textContent = result.reason;
     validationResult.className = `result ${result.valid ? "valid" : "invalid"}`;
   }
@@ -113,5 +120,10 @@
     if (event.key === "Enter") runValidation();
   });
 
+  document.querySelectorAll('[data-analytics-event="click_mobspot"]').forEach((link) => {
+    link.addEventListener("click", () => track("click_mobspot", {
+      link_position: link.dataset.linkPosition === "topbar" ? "topbar" : "footer"
+    }));
+  });
   generateAndShow();
 })(typeof window !== "undefined" ? window : globalThis);
