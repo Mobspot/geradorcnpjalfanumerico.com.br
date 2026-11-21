@@ -9,6 +9,8 @@ const publicFiles = [
   "404.html",
   "style.css",
   "script.js",
+  "analytics-config.js",
+  "googlef103b718b3ec6607.html",
   "gerador.png",
   "robots.txt",
   "sitemap.xml",

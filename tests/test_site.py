@@ -34,7 +34,7 @@ class SiteTests(unittest.TestCase):
         self.assertNotIn('name="keywords"', self.index)
 
     def test_public_artifact_is_allowlisted(self):
-        expected = {"index.html", "404.html", "style.css", "script.js", "gerador.png", "robots.txt", "sitemap.xml", "llms.txt", "CNAME"}
+        expected = {"index.html", "404.html", "style.css", "script.js", "analytics-config.js", "googlef103b718b3ec6607.html", "gerador.png", "robots.txt", "sitemap.xml", "llms.txt", "CNAME"}
         actual = {p.relative_to(DIST).as_posix() for p in DIST.rglob("*") if p.is_file()}
         self.assertEqual(actual, expected)
         self.assertFalse((DIST / "planos.html").exists())
@@ -42,8 +42,19 @@ class SiteTests(unittest.TestCase):
 
     def test_no_unapproved_collection_or_measurement(self):
         public_text = "\n".join(p.read_text(encoding="utf-8", errors="ignore") for p in DIST.rglob("*") if p.is_file() and p.suffix != ".png")
-        for forbidden in ("formspree", "googletagmanager", "GTM-", "G-MRLT4BW05L", "sk_test_", "Pagamento Confirmado", "Comprar com PIX"):
+        for forbidden in ("formspree", "GTM-", "G-MRLT4BW05L", "sk_test_", "Pagamento Confirmado", "Comprar com PIX"):
             self.assertNotIn(forbidden, public_text)
+        config = (DIST / "analytics-config.js").read_text(encoding="utf-8")
+        self.assertIn('const GA4_MEASUREMENT_ID = "";', config)
+        self.assertNotRegex(self.index, r'<script[^>]+src=["\x27]https?://')
+
+    def test_search_console_file_and_bootstrap_are_published(self):
+        verification = "googlef103b718b3ec6607.html"
+        for folder in (ROOT, DIST):
+            self.assertEqual((folder / verification).read_text(encoding="utf-8"),
+                             f"google-site-verification: {verification}\n")
+        self.assertLess(self.index.index('src="analytics-config.js"'), self.index.index('src="script.js"'))
+        self.assertIn('id="analytics-privacy" hidden', self.index)
 
     def test_accessibility_and_links(self):
         self.assertEqual(len(re.findall(r"<h1(?:\s|>)", self.index)), 1)
